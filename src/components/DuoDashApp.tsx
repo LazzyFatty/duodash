@@ -72,7 +72,7 @@ function DuoDashApp(): ReactElement {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-surface-background">
+    <div className="min-h-[100dvh] overflow-x-hidden bg-surface-background">
       {isDemo && (
         <div className="bg-amber-50 border-b border-amber-200 py-2.5 px-4">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">

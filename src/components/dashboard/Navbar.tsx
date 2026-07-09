@@ -44,7 +44,7 @@ export const Navbar = memo(function Navbar({ loading, lastUpdated, onRefresh, on
             {onShare && (
               <button
                 onClick={onShare}
-                className="surface-button px-2.5 py-2 sm:px-3 sm:py-2 min-h-[44px] sm:min-h-0"
+                className="surface-button w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-2"
                 aria-label="打开分享卡片对话框"
               >
                 <ShareIcon className="w-4 h-4 sm:w-5 sm:h-5 text-neutral-800" aria-hidden="true" />
@@ -54,7 +54,7 @@ export const Navbar = memo(function Navbar({ loading, lastUpdated, onRefresh, on
             <button
               onClick={onRefresh}
               disabled={loading}
-              className="surface-button px-2.5 py-2 sm:px-3 sm:py-2 min-h-[44px] sm:min-h-0 disabled:cursor-not-allowed disabled:opacity-50"
+              className="surface-button w-9 h-9 md:w-auto md:h-auto md:px-3 md:py-2 disabled:cursor-not-allowed disabled:opacity-50"
               title="刷新数据"
               aria-label={loading ? '正在刷新数据' : '刷新数据'}
             >

@@ -43,7 +43,7 @@ const ogImageURL = Astro.site ? new URL('/og.jpg', Astro.site) : null;
 
     <title>{title}</title>
   </head>
-  <body class="bg-surface-background min-h-screen flex flex-col">
+  <body class="bg-surface-background min-h-[100dvh] flex flex-col">
     <main class="flex-1 flex flex-col">
       <slot />
     </main>
