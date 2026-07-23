@@ -295,4 +295,4 @@ Intl.DateTimeFormat().resolvedOptions().timeZone
 
 ---
 
-> 本项目为非官方第三方工具，与 Duolingo Inc. 无关。使用需遵守 [Duolingo 服务条款](https://www.duolingo.com/terms)。
+> 本项目为非官方第三方工具，与 Duolingo Inc. 无关。使用需遵守 [Duolingo 服务条款](https://www.duolingo.com/terms)
