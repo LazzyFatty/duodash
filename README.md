@@ -12,6 +12,8 @@ Duolingo 学习数据仪表盘，直观展示你的 XP 趋势、连胜记录、�
 - **AI 点评**：基于学习数据调用 AI 生成个性化点评，支持多个服务商
 - **分享卡片**：生成连胜成就、经验突破、本周报告三种卡片
 - **本地缓存**：命中缓存时立即渲染，后台静默刷新；跨天后自动失效
+- **深色模式**：自动跟随系统外观偏好切换，无需手动设置
+- **大屏模式**：独立链接 `/kiosk` 提供平板/手机翻页视图，每页 4-6 个大数字，手动滑动翻页；与标准仪表盘同时在线
 - **响应式 + Gzip**：适配桌面、平板、移动端；服务端中间件自动压缩 API 响应
 
 ## 项目结构
@@ -165,6 +167,30 @@ document.cookie.match(/jwt_token=([^;]+)/)[1]
 
 > JWT Token 会定期过期，API 返回 401 时需重新获取。
 
+## 界面模式
+
+### 深色模式
+
+自动跟随系统外观偏好（`prefers-color-scheme`）在浅色 / 深色之间切换，无需任何配置或手动开关。基于 CSS 变量令牌系统实现，图表、热力图与主界面均已适配（分享卡片保持固定浅色，以保证导出图片一致）。
+
+### 大屏模式（Kiosk）
+
+大屏模式与标准仪表盘**同时在线**，通过独立链接访问，无需任何配置或环境变量：
+
+| 视图 | 链接 |
+| :--- | :--- |
+| 标准仪表盘 | `/` |
+| 大屏翻页视图 | `/kiosk` |
+
+`/kiosk` 页面特性：
+
+- 3 个页面，每页 4-6 个大数字：核心成就 / 今日·本周 / 学习概况
+- 手动左右滑动翻页，底部圆点指示；桌面端额外支持方向键与箭头按钮
+- 数字随视口自动放大，适合平板、手机或常驻墙面显示
+- 缺失的可选指标会自动省略，不留空位
+
+**如何使用**：直接把浏览器（或常驻平板设备）指向 `https://你的域名/kiosk` 即可；标准仪表盘 `/` 不受影响，两者共享同一份数据与缓存。想换成更隐蔽的路径，重命名 `src/pages/kiosk.astro`（如改为 `tv.astro` 即 `/tv`）。
+
 ## 部署
 
 项目会自动检测部署环境并选择对应 adapter，同一套代码无需修改即可部署到多个平台：
@@ -219,6 +245,30 @@ npx wrangler kv namespace create SESSION
 4. 在项目设置中配置环境变量、绑定 `SESSION` KV，并在 Settings → Functions → Compatibility flags 添加 `nodejs_compat` → 部署
 
 > 本地以 Workers 运行时预览：把密钥写入项目根的 `.dev.vars`（已在 `.gitignore` 中忽略），然后 `npm run build:cloudflare && npx wrangler dev`。
+
+**环境变量设置**
+
+完整变量清单见上文 [环境变量](#环境变量)。在 Cloudflare 上按敏感度分两类设置：
+
+| 类型 | 变量 | Workers 设置 | Pages 设置 |
+| :--- | :--- | :--- | :--- |
+| 🔒 密钥（加密） | `DUOLINGO_JWT`、`<PROVIDER>_API_KEY`、`API_SECRET_TOKEN` | `npx wrangler secret put <名称>` | 面板选 **Secret** 类型 |
+| 明文变量 | `DUOLINGO_USERNAME`、`AI_PROVIDER`、`AI_MODEL`、`AI_BASE_URL` | 写入 `wrangler.jsonc` 的 `vars`（或同样用 secret） | 面板选 **Plaintext** 类型 |
+
+- **Workers**：密钥用 `wrangler secret put`（需先部署过一次；设置后立即生效，无需重部署）。明文变量可写进 `wrangler.jsonc`：
+
+  ```jsonc
+  "vars": {
+    "DUOLINGO_USERNAME": "your_username",
+    "AI_PROVIDER": "deepseek",
+    "AI_MODEL": "deepseek-chat"
+  }
+  ```
+
+- **Pages**：全部在 **Settings → Variables and secrets** 添加，敏感项选 Secret；**改动后需重新部署才生效**。
+
+> 最小可用：只配 `DUOLINGO_USERNAME` + `DUOLINGO_JWT` 即可看数据；AI 相关变量不配时，仅 Duo 点评显示“未配置”提示。部署后访问 `/api/config`，返回 `{"configured": true}` 即表示凭据已被正确读取。
+
 
 
 ## 数据来源

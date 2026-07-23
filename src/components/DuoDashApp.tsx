@@ -2,10 +2,10 @@ import { useState, useMemo } from 'react';
 import type { ReactElement } from 'react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { buildDemoData } from '../utils/demo-data';
-import { LoginScreen, Navbar, LoadingScreen, ErrorScreen, DashboardView } from './dashboard';
+import { LoginScreen, Navbar, LoadingScreen, ErrorScreen, DashboardView, KioskView } from './dashboard';
 import { ShareModal } from './share';
 import { MESSAGES } from '../constants/messages';
-import type { UserData } from '../types';
+import type { UserData, DisplayMode } from '../types';
 
 const PLACEHOLDER_DATA: UserData = {
   streak: 0,
@@ -25,7 +25,7 @@ const PLACEHOLDER_DATA: UserData = {
   yearlyXpHistory: [],
 };
 
-function DuoDashApp(): ReactElement {
+function DuoDashApp({ displayMode = 'standard' }: { displayMode?: DisplayMode }): ReactElement {
   const { userData, loading, error, showLogin, lastUpdated, isDemo, setIsDemo, refresh, resetToLogin, setUserData } = useDashboardData();
   const [showShareModal, setShowShareModal] = useState(false);
 
@@ -74,14 +74,14 @@ function DuoDashApp(): ReactElement {
   return (
     <div className="min-h-[100dvh] overflow-x-hidden bg-surface-background">
       {isDemo && (
-        <div className="bg-amber-50 border-b border-amber-200 py-2.5 px-4">
+        <div className="bg-amber-50 dark:bg-amber-500/10 border-b border-amber-200 dark:border-amber-500/25 py-2.5 px-4">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
-            <span className="text-amber-800 text-xs font-bold">
+            <span className="text-amber-800 dark:text-amber-300 text-xs font-bold">
               当前正在浏览演示数据。
             </span>
             <button
               onClick={handleExitDemo}
-              className="text-xs font-extrabold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3 py-1 rounded-button transition-colors cursor-pointer"
+              className="text-xs font-extrabold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-500/15 hover:bg-amber-200 dark:hover:bg-amber-500/25 border border-amber-300 dark:border-amber-500/30 px-3 py-1 rounded-button transition-colors cursor-pointer"
             >
               配置真实数据
             </button>
@@ -91,12 +91,16 @@ function DuoDashApp(): ReactElement {
 
       <Navbar loading={loading} lastUpdated={lastUpdated} onRefresh={refresh} onShare={() => setShowShareModal(true)} />
 
-      <DashboardView
-        userData={userData}
-        viewData={viewData}
-        xpSummary={xpSummary}
-        timeSummary={timeSummary}
-      />
+      {displayMode === 'kiosk' ? (
+        <KioskView userData={userData} viewData={viewData} />
+      ) : (
+        <DashboardView
+          userData={userData}
+          viewData={viewData}
+          xpSummary={xpSummary}
+          timeSummary={timeSummary}
+        />
+      )}
 
       {userData && (
         <ShareModal

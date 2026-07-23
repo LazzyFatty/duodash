@@ -29,7 +29,7 @@ const STAT_CARDS = [
   },
   {
     icon: <TotalXpIcon className="w-6 h-6 text-yellow-500" />,
-    iconBgClass: 'bg-yellow-50',
+    iconBgClass: 'bg-yellow-50 dark:bg-yellow-500/10',
     label: '总经验',
     colorClass: 'text-yellow-500',
     value: (data: UserData) => data.totalXp.toLocaleString(),
@@ -43,7 +43,7 @@ const STAT_CARDS = [
   },
   {
     icon: <AccountAgeIcon className="w-5 h-5 text-purple-500" />,
-    iconBgClass: 'bg-purple-50',
+    iconBgClass: 'bg-purple-50 dark:bg-purple-500/10',
     label: '账号年龄',
     colorClass: 'text-purple-500',
     value: (data: UserData) => `${data.accountAgeDays} 天`,

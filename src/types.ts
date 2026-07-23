@@ -41,6 +41,8 @@ export interface UserData {
 
 export type AiProvider = 'openrouter' | 'deepseek' | 'siliconflow' | 'moonshot' | 'zenmux' | 'custom';
 
+export type DisplayMode = 'standard' | 'kiosk';
+
 interface DuolingoCalendarEvent {
   datetime: number;
   improvement: number;

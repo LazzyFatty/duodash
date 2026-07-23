@@ -78,7 +78,7 @@ export const LoginScreen = memo(function LoginScreen({ onDemo, error }: LoginScr
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-100 text-red-700 p-2.5 rounded-button mb-4 text-xs text-center">
+          <div className="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/25 text-red-700 dark:text-red-300 p-2.5 rounded-button mb-4 text-xs text-center">
             {error}
           </div>
         )}

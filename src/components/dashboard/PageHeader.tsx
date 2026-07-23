@@ -35,15 +35,15 @@ export function PageHeader({ userData, viewData }: PageHeaderProps): ReactElemen
             Super
           </span>
         )}
-        <span className="pill-badge border border-orange-100 bg-orange-50 text-orange-600 shadow-sm text-[10px] sm:text-xs">
+        <span className="pill-badge border border-orange-100 dark:border-orange-500/25 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 shadow-sm text-[10px] sm:text-xs">
           <StreakIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           {userData ? viewData.streak : '—'} 天连胜
         </span>
-        <span className="pill-badge border border-blue-100 bg-blue-50 text-blue-600 shadow-sm text-[10px] sm:text-xs">
+        <span className="pill-badge border border-blue-100 dark:border-blue-500/25 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-sm text-[10px] sm:text-xs">
           <GemsIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           {userData ? viewData.gems.toLocaleString() : '—'} 宝石
         </span>
-        <span className="pill-badge border border-yellow-100 bg-yellow-50 text-yellow-700 shadow-sm text-[10px] sm:text-xs">
+        <span className="pill-badge border border-yellow-100 dark:border-yellow-500/25 bg-yellow-50 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 shadow-sm text-[10px] sm:text-xs">
           <LeagueIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           <span className="truncate max-w-[100px] sm:max-w-[150px]" title={leagueLabel}>
             {leagueLabel}

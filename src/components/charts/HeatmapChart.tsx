@@ -30,7 +30,7 @@ function toLocalDateStr(d: Date): string {
 
 function getColor(xp: number, maxXp: number): string {
   if (xp < 0) return 'transparent';
-  if (xp === 0) return '#EBEDF0';
+  if (xp === 0) return 'var(--heatmap-empty)';
   const intensity = Math.min(xp / maxXp, 1);
   if (intensity < 0.25) return '#9BE9A8';
   if (intensity < 0.5) return '#40C463';
@@ -375,7 +375,7 @@ export function HeatmapChart({ data }: HeatmapChartProps): ReactElement {
             </div>
             <div className="flex items-center gap-1 text-xs text-neutral-500">
               <span>少</span>
-              {['#EBEDF0', '#9BE9A8', '#40C463', DuoColors.featherGreen, '#216E39'].map((color, i) => (
+              {['var(--heatmap-empty)', '#9BE9A8', '#40C463', DuoColors.featherGreen, '#216E39'].map((color, i) => (
                 <div key={i} className="w-[10px] h-[10px] rounded-sm" style={{ backgroundColor: color }} />
               ))}
               <span>多</span>

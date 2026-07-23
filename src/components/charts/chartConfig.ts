@@ -2,20 +2,20 @@ import { DuoColors } from '../../styles/duolingoColors';
 
 export const CHART_TOOLTIP_STYLE = {
   borderRadius: '12px',
-  border: '1px solid #f1f5f9',
+  border: '1px solid var(--chart-tooltip-border)',
   boxShadow: '0 10px 25px -5px rgba(0,0,0,0.12)',
   fontSize: 12,
-  backgroundColor: '#ffffff'
+  backgroundColor: 'var(--chart-tooltip-bg)'
 } as const;
 
 export const CHART_GRID_STYLE = {
   strokeDasharray: '3 3',
   vertical: false,
-  stroke: '#f1f5f9'
+  stroke: 'var(--chart-grid)'
 } as const;
 
 const CHART_AXIS_TICK_STYLE = {
-  fill: '#94a3b8',
+  fill: 'var(--chart-axis)',
   fontSize: 10
 } as const;
 
@@ -46,7 +46,7 @@ export const createDotStyle = (color: string) => ({
   r: 3,
   fill: color,
   strokeWidth: 2,
-  stroke: '#fff'
+  stroke: 'var(--chart-dot-stroke)'
 } as const);
 
 export const ACTIVE_DOT_STYLE = { r: 5 } as const;

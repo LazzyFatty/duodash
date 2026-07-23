@@ -83,5 +83,7 @@ export function buildDemoData(now = new Date()): UserData {
     lessonsToday: 6,
     streakExtendedToday: false,
     weeklyXp: weeklyXpHistory.reduce((sum, day) => sum + day.xp, 0),
+    sessionCount: 4200,
+    streakFreezeCount: 3,
   };
 }
