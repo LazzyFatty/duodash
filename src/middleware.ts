@@ -42,6 +42,11 @@ function isInCompressRange(size: number): boolean {
 export const onRequest: MiddlewareHandler = async function (context, next) {
   const { request } = context;
   const response = await next();
+
+  // Cloudflare 边缘会自动压缩响应（gzip/brotli/zstd），跳过手动 gzip：
+  // 既避免双重压缩，又省下宝贵的 Worker CPU 配额。
+  if ('runtime' in context.locals) return response;
+
   const method = request.method;
 
   if (method !== 'GET' && method !== 'HEAD') return response;

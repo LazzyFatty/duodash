@@ -12,6 +12,8 @@ dist
 dist-ssr
 .astro
 .vercel
+.wrangler
+.dev.vars
 *.local
 .claude
 

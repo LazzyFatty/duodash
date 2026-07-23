@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "duodash",
+  "compatibility_date": "2026-04-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "kv_namespaces": [
+    // Astro 6 的 Cloudflare 适配器默认用 KV 提供 Sessions（绑定名 SESSION）。
+    // DuoDash 目前未使用 Sessions，但适配器要求该绑定存在，部署前需创建一次：
+    //   npx wrangler kv namespace create SESSION
+    // 然后把命令输出的 id 填到下面，替换占位符。
+    { "binding": "SESSION", "id": "REPLACE_WITH_YOUR_KV_NAMESPACE_ID" }
+  ]
+}

@@ -167,7 +167,13 @@ document.cookie.match(/jwt_token=([^;]+)/)[1]
 
 ## 部署
 
-项目会自动检测部署环境：存在 `NETLIFY` 环境变量时使用 Netlify adapter，否则使用 Vercel adapter，同一套代码无需修改即可部署到两个平台。
+项目会自动检测部署环境并选择对应 adapter，同一套代码无需修改即可部署到多个平台：
+
+| 检测到的环境变量 | 使用的 adapter |
+| --- | --- |
+| `CF_PAGES`（Cloudflare Pages 自动注入）或 `DEPLOY_TARGET=cloudflare` | Cloudflare |
+| `NETLIFY` | Netlify |
+| 以上都没有（默认） | Vercel |
 
 ### Vercel
 
@@ -180,6 +186,40 @@ document.cookie.match(/jwt_token=([^;]+)/)[1]
 1. 登录 [Netlify](https://netlify.com/) → 导入 GitHub 仓库
 2. Build command: `npm run build`，Publish directory: `dist`
 3. 配置环境变量 → 部署
+
+### Cloudflare
+
+运行在 Workers 运行时（workerd）上，需 `nodejs_compat` 兼容标志（已在 `wrangler.jsonc` 中配置）。API 路由用到 `node:crypto` / `node:zlib` / `node:util`，均由该标志提供支持。
+
+**一次性前置：创建 Sessions KV 命名空间**
+
+Astro 的 Cloudflare 适配器默认用 KV 提供 Sessions。执行一次并把返回的 id 填入 `wrangler.jsonc` 的 `kv_namespaces`：
+
+```bash
+npx wrangler kv namespace create SESSION
+```
+
+**方式 A — Workers（推荐，命令行部署）**
+
+1. 完成上面的 KV 前置步骤
+2. 配置密钥（二选一）：
+   - 命令行：`npx wrangler secret put DUOLINGO_JWT`（其余密钥同理）
+   - 或在 Cloudflare 后台 Workers → Settings → Variables 添加
+3. 一键构建并部署：
+
+   ```bash
+   npm run deploy:cloudflare
+   ```
+
+**方式 B — Pages（Git 集成，自动构建）**
+
+1. 完成上面的 KV 前置步骤
+2. 登录 Cloudflare → Pages → 连接 GitHub 仓库
+3. 构建命令 `npm run build`（Pages 自动注入 `CF_PAGES`，会自动选用 Cloudflare 适配器），输出目录 `dist`
+4. 在项目设置中配置环境变量、绑定 `SESSION` KV，并在 Settings → Functions → Compatibility flags 添加 `nodejs_compat` → 部署
+
+> 本地以 Workers 运行时预览：把密钥写入项目根的 `.dev.vars`（已在 `.gitignore` 中忽略），然后 `npm run build:cloudflare && npx wrangler dev`。
+
 
 ## 数据来源
 

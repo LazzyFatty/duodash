@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import vercel from '@astrojs/vercel';
 import netlify from '@astrojs/netlify';
+import cloudflare from '@astrojs/cloudflare';
 
 dns.setDefaultResultOrder('verbatim');
 const DEFAULT_DEV_HOST = 'localhost';
@@ -22,6 +23,13 @@ function getDevServerConfig(env = process.env) {
 const devServerConfig = getDevServerConfig();
 
 function getAdapter(env = process.env) {
+  // Cloudflare Pages 构建时自动注入 CF_PAGES；Workers 部署用 DEPLOY_TARGET=cloudflare 显式指定
+  if (env.CF_PAGES || env.DEPLOY_TARGET === 'cloudflare') {
+    // DuoDash 为纯客户端渲染的 React SPA，不使用 Astro 图像优化，
+    // 用 passthrough 关闭图像服务：免去 IMAGES 绑定依赖，也跳过构建期 workerd 处理。
+    return cloudflare({ imageService: 'passthrough' });
+  }
+
   if (env.NETLIFY) {
     return netlify();
   }
