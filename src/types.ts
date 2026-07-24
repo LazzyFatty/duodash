@@ -10,6 +10,8 @@ export interface Course {
 }
 
 export interface UserData {
+  username: string;
+  displayName?: string;
   streak: number;
   totalXp: number;
   gems: number;

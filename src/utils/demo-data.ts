@@ -51,6 +51,8 @@ export function buildDemoData(now = new Date()): UserData {
   const todayEntry = dailyHistory[dailyHistory.length - 1];
 
   return {
+    username: 'duodash_demo',
+    displayName: 'DuoDash 演示用户',
     streak: 2045,
     totalXp: 202663,
     gems: 15400,

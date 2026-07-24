@@ -114,6 +114,7 @@ img {
 .bg-brand-50 { background-color: var(--color-brand-50); }
 .bg-brand-100 { background-color: var(--color-brand-100); }
 .bg-brand-500 { background-color: var(--color-brand-500); }
+.bg-neutral-100 { background-color: var(--color-neutral-100); }
 .bg-status-info-bg { background-color: var(--color-status-info-bg); }
 
 .text-brand-500 { color: var(--color-brand-500); }
@@ -252,6 +253,33 @@ img {
 
 .animate-fade-in-up {
   animation: fade-in-up 0.2s ease-out both;
+}
+
+@keyframes kiosk-number {
+  0% {
+    opacity: 0;
+    transform: scale(0.78);
+    filter: blur(4px);
+  }
+  70% {
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-kiosk-number {
+  animation: kiosk-number 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-kiosk-number,
+  .animate-fade-in-up {
+    animation: none;
+  }
 }
 
 /* 大屏翻页容器：隐藏滚动条但保留滑动能力 */

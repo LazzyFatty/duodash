@@ -8,6 +8,8 @@ import { MESSAGES } from '../constants/messages';
 import type { UserData, DisplayMode } from '../types';
 
 const PLACEHOLDER_DATA: UserData = {
+  username: 'Duolingo 用户',
+  displayName: 'Duolingo 用户',
   streak: 0,
   totalXp: 0,
   gems: 0,
@@ -71,6 +73,14 @@ function DuoDashApp({ displayMode = 'standard' }: { displayMode?: DisplayMode })
     );
   }
 
+  if (displayMode === 'kiosk') {
+    return (
+      <div className="h-[100dvh] overflow-hidden bg-surface-background">
+        <KioskView userData={userData} viewData={viewData} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[100dvh] overflow-x-hidden bg-surface-background">
       {isDemo && (
@@ -91,16 +101,12 @@ function DuoDashApp({ displayMode = 'standard' }: { displayMode?: DisplayMode })
 
       <Navbar loading={loading} lastUpdated={lastUpdated} onRefresh={refresh} onShare={() => setShowShareModal(true)} />
 
-      {displayMode === 'kiosk' ? (
-        <KioskView userData={userData} viewData={viewData} />
-      ) : (
-        <DashboardView
-          userData={userData}
-          viewData={viewData}
-          xpSummary={xpSummary}
-          timeSummary={timeSummary}
-        />
-      )}
+      <DashboardView
+        userData={userData}
+        viewData={viewData}
+        xpSummary={xpSummary}
+        timeSummary={timeSummary}
+      />
 
       {userData && (
         <ShareModal

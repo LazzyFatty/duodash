@@ -56,6 +56,8 @@ export function transformDuolingoData(rawData: DuolingoRawUser, timeZone?: strin
   const { xpToday, lessonsToday, streakExtendedToday, streakExtendedTime } = resolveTodayStats(rawData, xpByDate, resolvedTimeZone);
 
   return {
+    username: rawData.username || 'Duolingo 用户',
+    displayName: rawData.name || rawData.fullname || rawData.username || 'Duolingo 用户',
     streak,
     totalXp,
     gems,
