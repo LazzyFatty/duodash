@@ -255,6 +255,8 @@ document.cookie.match(/jwt_token=([^;]+)/)[1]
   }
   ```
 
+  `wrangler.jsonc` 已启用 `keep_vars`，因此通过 Cloudflare 控制台添加的明文变量不会在下次 `wrangler deploy` 时被删除。
+
 - **Pages**：全部在 **Settings → Variables and secrets** 添加，敏感项选 Secret；**改动后需重新部署才生效**。
 
 > 最小可用：只配 `DUOLINGO_USERNAME` + `DUOLINGO_JWT` 即可看数据；AI 相关变量不配时，仅 Duo 点评显示“未配置”提示。部署后访问 `/api/config`，返回 `{"configured": true}` 即表示凭据已被正确读取。
