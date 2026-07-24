@@ -51,7 +51,9 @@ export function HeatmapChart({ data }: HeatmapChartProps): ReactElement {
 
     function checkScreenSize(): void {
       const width = window.innerWidth;
-      if (width < 640) {
+      if (width < 520) {
+        setViewMode('quarter');
+      } else if (width < 900) {
         setViewMode('half');
       } else {
         setViewMode('year');
