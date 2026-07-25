@@ -6,14 +6,14 @@ Duolingo 学习数据仪表盘，直观展示你的 XP 趋势、连胜记录、�
 
 - **今日概览**：显示今日 XP、课程数、连胜天数和学习分钟数
 - **趋势图表**：最近 7 天 XP 和学习时长面积图，显示周期内总量汇总
-- **年度热力图**：全年学习热力图，支持年份切换；宽屏显示全年，窄屏自动切换为上下半年视图
+- **年度热力图**：全年学习热力图，支持年份切换；宽屏显示全年，窄屏按宽度自动切换为半年或季度视图
 - **成就系统**：20 个徽章，覆盖连胜、单日 XP、累计天数、总 XP 四个维度
 - **课程管理**：展示所有学习中的语言课程及 XP 分布
 - **AI 点评**：基于学习数据调用 AI 生成个性化点评，支持多个服务商
 - **分享卡片**：生成连胜成就、经验突破、本周报告三种卡片
 - **本地缓存**：命中缓存时立即渲染，后台静默刷新；跨天后自动失效
 - **深色模式**：自动跟随系统外观偏好切换，无需手动设置
-- **大屏模式**：独立链接 `/kiosk` 提供平板/手机翻页视图，每页 4-6 个大数字，手动滑动翻页；与标准仪表盘同时在线
+- **大屏模式**：独立链接 `/kiosk` 提供触屏优先的全屏翻页视图，5 屏依次展示核心数据、年度热力图、近 7 天趋势、语言分布与学习奖项；与标准仪表盘同时在线
 - **响应式 + Gzip**：适配桌面、平板、移动端；服务端中间件自动压缩 API 响应
 
 ## 项目结构
@@ -182,12 +182,18 @@ document.cookie.match(/jwt_token=([^;]+)/)[1]
 | 标准仪表盘 | `/` |
 | 大屏翻页视图 | `/kiosk` |
 
-`/kiosk` 页面特性：
+触屏优先设计，5 屏全屏铺满，左右滑动切换（横向 scroll-snap，原生手势，无需按钮或圆点）：
 
-- 3 个页面，每页 4-6 个大数字：核心成就 / 今日·本周 / 学习概况
-- 手动左右滑动翻页，底部圆点指示；桌面端额外支持方向键与箭头按钮
-- 数字随视口自动放大，适合平板、手机或常驻墙面显示
-- 缺失的可选指标会自动省略，不留空位
+| 屏 | 内容 |
+| :-- | :--- |
+| 1 · 核心成绩 | 用户名 + 8 个大数字瓦片（连胜、总经验、今日经验、近 7 天经验 / 分钟、宝石、段位、语言课程），进入时数字滚动递增 |
+| 2 · 年度轨迹 | 全年学习热力图 |
+| 3 · 最近 7 天 | XP 与学习时长双面积图 |
+| 4 · 语言分布 | 各语言课程及 XP 占比 |
+| 5 · 学习奖项 | 成就徽章墙 |
+
+- 数字与图表随视口自动放大，适合平板、手机或常驻墙面显示
+- 尊重系统「减少动态效果」偏好，开启后自动关闭数字滚动动画
 
 **如何使用**：直接把浏览器（或常驻平板设备）指向 `https://你的域名/kiosk` 即可；标准仪表盘 `/` 不受影响，两者共享同一份数据与缓存。想换成更隐蔽的路径，重命名 `src/pages/kiosk.astro`（如改为 `tv.astro` 即 `/tv`）。
 
@@ -215,53 +221,57 @@ document.cookie.match(/jwt_token=([^;]+)/)[1]
 
 ### Cloudflare
 
-运行在 Workers 运行时（workerd）上，需 `nodejs_compat` 兼容标志（已在 `wrangler.jsonc` 中配置）。API 路由用到 `node:crypto` / `node:zlib` / `node:util`，均由该标志提供支持。项目未使用 Sessions（`astro.config.mjs` 中已指定内存驱动关闭适配器默认的 KV Sessions），因此**无需创建任何 KV 命名空间**。
+运行在 Workers 运行时（workerd），需开启 `nodejs_compat` 兼容标志（API 用到 `node:crypto` / `node:zlib` / `node:util`）：Workers 侧已写入 `wrangler.jsonc`，Pages 侧需在后台单独添加（见方式 B 第 3 步）。项目未使用 Sessions（`astro.config.mjs` 指定了内存驱动），因此**无需创建任何 KV 命名空间**。
 
-**方式 A — Workers（推荐，命令行部署）**
+两种部署方式，二选一；所有环境变量的设置办法集中在本节末「环境变量设置」小节。
 
-1. 配置密钥（二选一）：
-   - 命令行：`npx wrangler secret put DUOLINGO_JWT`（其余密钥同理）
-   - 或在 Cloudflare 后台 Workers → Settings → Variables 添加
-2. 一键构建并部署：
+#### 方式 A · Workers（命令行，推荐）
 
-   ```bash
-   npm run deploy:cloudflare
-   ```
+```bash
+# 首次：安装依赖并登录
+npm install
+npx wrangler login
 
-**方式 B — Pages（Git 集成，自动构建）**
+# 配置密钥（逐个执行；也可在后台 Workers → Settings → Variables 添加）
+npx wrangler secret put DUOLINGO_JWT
+npx wrangler secret put DEEPSEEK_API_KEY    # 按所用 AI 服务商替换名称
 
-1. 登录 Cloudflare → Pages → 连接 GitHub 仓库
-2. 构建命令 `npm run build`（Pages 自动注入 `CF_PAGES`，会自动选用 Cloudflare 适配器），输出目录 `dist`
-3. 在项目设置中配置环境变量，并在 Settings → Functions → Compatibility flags 添加 `nodejs_compat` → 部署
+# 明文变量写进 wrangler.jsonc 的 vars（见下），然后一键构建并部署
+npm run deploy:cloudflare
+```
 
-> 本地以 Workers 运行时预览：把密钥写入项目根的 `.dev.vars`（已在 `.gitignore` 中忽略），然后 `npm run build:cloudflare && npx wrangler dev`。
+#### 方式 B · Pages（连接 Git，自动构建）
 
-**环境变量设置**
+1. Cloudflare → **Pages** → 连接 GitHub 仓库
+2. 构建命令 `npm run build`、输出目录 `dist`（Pages 自动注入 `CF_PAGES`，会自动选用 Cloudflare 适配器）
+3. **Settings → Functions → Compatibility flags** 添加 `nodejs_compat`
+4. **Settings → Variables and secrets** 添加环境变量（密钥选 Secret，其余选 Plaintext）
+5. 触发部署（此后每次改动变量都需重新部署才生效）
 
-完整变量清单见上文 [环境变量](#环境变量)。在 Cloudflare 上按敏感度分两类设置：
+#### 环境变量设置
 
-| 类型 | 变量 | Workers 设置 | Pages 设置 |
+完整清单见上文 [环境变量](#环境变量)。在 Cloudflare 上按敏感度分两类设置：
+
+| 类型 | 包含变量 | Workers | Pages |
 | :--- | :--- | :--- | :--- |
-| 🔒 密钥（加密） | `DUOLINGO_JWT`、`<PROVIDER>_API_KEY`、`API_SECRET_TOKEN` | `npx wrangler secret put <名称>` | 面板选 **Secret** 类型 |
-| 明文变量 | `DUOLINGO_USERNAME`、`AI_PROVIDER`、`AI_MODEL`、`AI_BASE_URL` | 写入 `wrangler.jsonc` 的 `vars`（或同样用 secret） | 面板选 **Plaintext** 类型 |
+| 🔒 密钥（加密） | `DUOLINGO_JWT`、`<PROVIDER>_API_KEY`、`API_SECRET_TOKEN` | `npx wrangler secret put <名称>` | 面板选 **Secret** |
+| 明文变量 | `DUOLINGO_USERNAME`、`AI_PROVIDER`、`AI_MODEL`、`AI_BASE_URL` | 写入 `wrangler.jsonc` 的 `vars` | 面板选 **Plaintext** |
 
-- **Workers**：密钥用 `wrangler secret put`（需先部署过一次；设置后立即生效，无需重部署）。明文变量可写进 `wrangler.jsonc`：
+Workers 的明文变量写在 `wrangler.jsonc`：
 
-  ```jsonc
-  "vars": {
-    "DUOLINGO_USERNAME": "your_username",
-    "AI_PROVIDER": "deepseek",
-    "AI_MODEL": "deepseek-chat"
-  }
-  ```
+```jsonc
+"vars": {
+  "DUOLINGO_USERNAME": "your_username",
+  "AI_PROVIDER": "deepseek",
+  "AI_MODEL": "deepseek-chat"
+}
+```
 
-  `wrangler.jsonc` 已启用 `keep_vars`，因此通过 Cloudflare 控制台添加的明文变量不会在下次 `wrangler deploy` 时被删除。
+> 已启用 `keep_vars`：通过 Cloudflare 后台手动添加的明文变量，不会在下次 `wrangler deploy` 时被覆盖删除。Workers 密钥用 `wrangler secret put` 设置后立即生效、无需重部署；Pages 的变量则每次改动都要重新部署。
 
-- **Pages**：全部在 **Settings → Variables and secrets** 添加，敏感项选 Secret；**改动后需重新部署才生效**。
+**本地预览**（Workers 运行时）：把密钥写入项目根 `.dev.vars`（已在 `.gitignore` 忽略），然后 `npm run build:cloudflare && npx wrangler dev`。
 
-> 最小可用：只配 `DUOLINGO_USERNAME` + `DUOLINGO_JWT` 即可看数据；AI 相关变量不配时，仅 Duo 点评显示“未配置”提示。部署后访问 `/api/config`，返回 `{"configured": true}` 即表示凭据已被正确读取。
-
-
+> 最小可用：只配 `DUOLINGO_USERNAME` + `DUOLINGO_JWT` 即可看数据；未配 AI 相关变量时，仅 Duo 点评显示「未配置」提示。部署后访问 `/api/config`，返回 `{"configured": true}` 即表示凭据已被正确读取。
 
 ## 数据来源
 
