@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { useAchievementStats } from '../../hooks/useAchievementStats';
 import { AchievementIconMap, type AchievementIconType } from './AchievementIcons';

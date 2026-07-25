@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef } from 'react';
+import { memo, useMemo } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import type { UserData } from '../../types';
 import { BigStatTile } from './BigStatTile';
@@ -62,7 +62,6 @@ function KioskPage({
 }
 
 export const KioskView = memo(function KioskView({ userData, viewData }: KioskViewProps): ReactElement {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const hasUserData = userData !== null;
   const displayName = hasUserData
     ? viewData.displayName || viewData.username
@@ -91,7 +90,6 @@ export const KioskView = memo(function KioskView({ userData, viewData }: KioskVi
 
   return (
     <main
-      ref={scrollRef}
       className="hide-scrollbar flex h-[100dvh] w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain"
       aria-roledescription="carousel"
       aria-label={`${displayName}的学习成绩`}
