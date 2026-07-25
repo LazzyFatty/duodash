@@ -1,11 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense, lazy } from 'react';
 import type { ReactElement } from 'react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { buildDemoData } from '../utils/demo-data';
-import { LoginScreen, Navbar, LoadingScreen, ErrorScreen, DashboardView, KioskView } from './dashboard';
+import { LoginScreen, Navbar, LoadingScreen, ErrorScreen, DashboardView } from './dashboard';
 import { ShareModal } from './share';
 import { MESSAGES } from '../constants/messages';
 import type { UserData, DisplayMode } from '../types';
+
+// Kiosk（/kiosk）是独立路由，静态引入会把其图表链打进标准仪表盘主包；
+// 懒加载让 / 页不再拉取 kiosk 分块，两个视图各自成块。
+const LazyKioskView = lazy(() => import('./dashboard/KioskView').then((m) => ({ default: m.KioskView })));
 
 const PLACEHOLDER_DATA: UserData = {
   username: 'Duolingo 用户',
@@ -76,7 +80,9 @@ function DuoDashApp({ displayMode = 'standard' }: { displayMode?: DisplayMode })
   if (displayMode === 'kiosk') {
     return (
       <div className="h-[100dvh] overflow-hidden bg-surface-background">
-        <KioskView userData={userData} viewData={viewData} />
+        <Suspense fallback={<div className="h-[100dvh] w-full animate-pulse bg-surface-background" />}>
+          <LazyKioskView userData={userData} viewData={viewData} />
+        </Suspense>
       </div>
     );
   }
