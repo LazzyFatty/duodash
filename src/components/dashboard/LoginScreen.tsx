@@ -8,7 +8,7 @@ interface LoginScreenProps {
 
 const JWT_COMMAND = `document.cookie.match(/jwt_token=([^;]+)/)[1]`;
 const CP_COMMAND = 'cp .env.example .env.local';
-const README_URL = 'https://github.com/eyozy/duodash/blob/main/README.md';
+const README_URL = 'https://github.com/scavin/duodash/blob/main/README.md';
 
 function useCopyAction(text: string): [boolean, () => void] {
   const [copied, setCopied] = useState(false);

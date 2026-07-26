@@ -89,7 +89,7 @@ duodash/
 ### 安装
 
 ```bash
-git clone https://github.com/Eyozy/duodash.git
+git clone https://github.com/scavin/duodash.git
 cd duodash
 npm install
 ```

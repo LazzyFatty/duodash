@@ -10,7 +10,7 @@ interface BigStatTileProps {
 }
 
 /**
- * 大屏模式的单个大数字瓦片：数字用 clamp() 随视口缩放，平板/手机上都醒目。
+ * 大屏模式的单个大数字瓦片：数字按卡片自身宽度缩放，平板/手机上都醒目且不会溢出。
  * 图标与数字共用 accentClass（图标为 currentColor SVG，自动取色）。
  */
 export const BigStatTile = memo(function BigStatTile({
@@ -42,10 +42,10 @@ export const BigStatTile = memo(function BigStatTile({
   }, [animated, value]);
 
   return (
-    <div className="panel-card animate-fade-in-up flex h-full flex-col items-center justify-center gap-2 p-3 text-center sm:gap-4 sm:p-6">
+    <div className="big-stat-tile panel-card animate-fade-in-up flex h-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden p-3 text-center sm:gap-4 sm:p-6">
       {icon && <div className={`${accentClass} opacity-90`}>{icon}</div>}
       <div
-        className={`font-black tabular-nums leading-none ${accentClass} ${animated ? 'animate-kiosk-number' : ''} text-[clamp(2.25rem,10vw,6.5rem)]`}
+        className={`big-stat-value max-w-full whitespace-nowrap font-black tabular-nums leading-none ${accentClass} ${animated ? 'animate-kiosk-number' : ''}`}
       >
         {typeof displayValue === 'number' ? displayValue.toLocaleString() : displayValue}
       </div>

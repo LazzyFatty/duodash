@@ -275,6 +275,15 @@ img {
   animation: kiosk-number 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.big-stat-tile {
+  container-type: inline-size;
+}
+
+.big-stat-value {
+  font-size: clamp(2rem, 6vw, 4rem);
+  font-size: clamp(2rem, 24cqw, 6.5rem);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-kiosk-number,
   .animate-fade-in-up {
