@@ -133,6 +133,30 @@ img {
 .border-neutral-100 { border-color: var(--color-neutral-100); }
 .border-status-info { border-color: var(--color-status-info-border); }
 
+/* 分享卡片始终按固定浅色主题渲染，确保深色模式预览与导出的 PNG 颜色一致。 */
+.share-card-light {
+  color-scheme: light;
+  --color-brand-50: #f3fce9;
+  --color-brand-100: #e2facf;
+  --color-brand-500: #58cc02;
+  --color-brand-600: #46a302;
+  --color-brand-700: #347a02;
+  --color-brand-border: rgba(88, 204, 2, 0.35);
+  --color-surface: #ffffff;
+  --color-surface-background: #f8fafc;
+  --color-status-info: #1cb0f6;
+  --color-status-info-bg: #eff6ff;
+  --color-status-info-border: rgba(28, 176, 246, 0.28);
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #334155;
+  --color-neutral-900: #0f172a;
+  color: #334155;
+}
+
 .rounded-card { border-radius: var(--radius-card); }
 .rounded-button { border-radius: var(--radius-button); }
 .rounded-pill { border-radius: var(--radius-pill); }

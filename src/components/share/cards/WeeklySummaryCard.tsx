@@ -26,7 +26,7 @@ export const WeeklySummaryCard = forwardRef<HTMLDivElement, WeeklySummaryCardPro
     return (
       <div
         ref={ref}
-        className="pointer-events-none relative mx-auto flex w-[344px] h-[430px] flex-col overflow-hidden rounded-[14px] border border-slate-200 bg-gradient-to-b from-status-info-bg via-white to-white shadow-lg"
+        className="share-card-light pointer-events-none relative mx-auto flex w-[344px] h-[430px] flex-col overflow-hidden rounded-[14px] border border-slate-200 bg-gradient-to-b from-status-info-bg via-white to-white shadow-lg"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(28,176,246,0.18),transparent_28%)]" />
         <div className="pointer-events-none absolute -right-12 top-16 h-40 w-40 rounded-full bg-white/55 blur-3xl" />
@@ -37,8 +37,15 @@ export const WeeklySummaryCard = forwardRef<HTMLDivElement, WeeklySummaryCardPro
             <div className="inline-flex shrink-0 items-center whitespace-nowrap rounded-pill border border-status-info bg-status-info-bg px-3 py-1 text-xs font-bold text-status-info">
               本周报告
             </div>
-            <div className="shrink-0 text-right text-xs font-semibold text-neutral-500">
-              {dateRange}
+            <div className="flex shrink-0 items-center gap-2">
+              <img
+                src="/duo-owl.svg"
+                alt="Duolingo"
+                className="h-7 w-7 object-contain"
+              />
+              <div className="text-right text-xs font-semibold text-neutral-500">
+                {dateRange}
+              </div>
             </div>
           </div>
 

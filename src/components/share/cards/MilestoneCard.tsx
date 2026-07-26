@@ -70,7 +70,7 @@ export const MilestoneCard = forwardRef<HTMLDivElement, MilestoneCardProps>(
     return (
       <div
         ref={ref}
-        className={`pointer-events-none relative mx-auto flex w-[344px] h-[430px] flex-col overflow-hidden rounded-[14px] border border-slate-200 bg-gradient-to-b shadow-lg ${surfaceClass}`}
+        className={`share-card-light pointer-events-none relative mx-auto flex w-[344px] h-[430px] flex-col overflow-hidden rounded-[14px] border border-slate-200 bg-gradient-to-b shadow-lg ${surfaceClass}`}
       >
         {/* Top-right color gradient */}
         <div
@@ -86,8 +86,15 @@ export const MilestoneCard = forwardRef<HTMLDivElement, MilestoneCardProps>(
             <div className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-pill border px-3 py-1 text-xs font-bold ${badgeClass}`}>
               {badge}
             </div>
-            <div className="shrink-0 text-right text-xs font-semibold text-neutral-500">
-              {displayDate}
+            <div className="flex shrink-0 items-center gap-2">
+              <img
+                src="/duo-owl.svg"
+                alt="Duolingo"
+                className="h-7 w-7 object-contain"
+              />
+              <div className="text-right text-xs font-semibold text-neutral-500">
+                {displayDate}
+              </div>
             </div>
           </div>
 
