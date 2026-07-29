@@ -3,7 +3,7 @@
   "buildCommand": "npm run build:edgeone",
   "installCommand": "npm ci",
   "outputDirectory": "dist/client",
-  "nodeVersion": "22.11.0",
+  "nodeVersion": "22.21.1",
   "headers": [
     {
       "source": "/*",
