@@ -1,6 +1,12 @@
 import type { APIRoute } from 'astro';
 import type { AiProvider } from '../../types';
-import { getEnv, jsonResponse, createAuthChecker, sanitizeErrorMessage } from '../../utils/api-utils';
+import {
+  getEnv,
+  jsonResponse,
+  createAuthChecker,
+  sanitizeErrorMessage,
+  type RuntimeEnv,
+} from '../../utils/api-utils';
 
 export const prerender = false;
 
@@ -29,21 +35,19 @@ const DEFAULT_ENDPOINTS: Record<AiProvider, string> = {
   custom: '',
 };
 
-const checkToken = createAuthChecker(() => getEnv('API_SECRET_TOKEN'));
-
 function isAiProvider(provider: string): provider is AiProvider {
   return provider in API_KEY_ENV_MAP;
 }
 
-function getEnvConfig(): AiConfig {
-  const configuredProvider = getEnv('AI_PROVIDER') || 'deepseek';
+function getEnvConfig(runtimeEnv?: RuntimeEnv): AiConfig {
+  const configuredProvider = getEnv('AI_PROVIDER', runtimeEnv) || 'deepseek';
   const provider = isAiProvider(configuredProvider) ? configuredProvider : 'deepseek';
 
   return {
     provider,
-    apiKey: getEnv(API_KEY_ENV_MAP[provider]),
-    model: getEnv('AI_MODEL') || 'deepseek-chat',
-    baseUrl: getEnv('AI_BASE_URL'),
+    apiKey: getEnv(API_KEY_ENV_MAP[provider], runtimeEnv),
+    model: getEnv('AI_MODEL', runtimeEnv) || 'deepseek-chat',
+    baseUrl: getEnv('AI_BASE_URL', runtimeEnv),
   };
 }
 
@@ -51,12 +55,16 @@ function buildResponse(analysis: string, config: AiConfig): Response {
   return jsonResponse({ analysis, provider: config.provider, model: config.model });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export async function handleAiRequest(
+  request: Request,
+  runtimeEnv?: RuntimeEnv,
+): Promise<Response> {
+  const checkToken = createAuthChecker(() => getEnv('API_SECRET_TOKEN', runtimeEnv));
   if (!checkToken(request)) {
     return jsonResponse({ error: 'Unauthorized' }, 401);
   }
 
-  const config = getEnvConfig();
+  const config = getEnvConfig(runtimeEnv);
 
   if (!config.apiKey) {
     return buildResponse('咕咕！未配置 AI API Key，请在环境变量中设置。', config);
@@ -168,4 +176,6 @@ export const POST: APIRoute = async ({ request }) => {
     const message = sanitizeErrorMessage(error);
     return buildResponse(`咕咕！连接出错：${message}。请检查环境变量中的 API 配置。`, config);
   }
-};
+}
+
+export const POST: APIRoute = ({ request }) => handleAiRequest(request);

@@ -1,7 +1,17 @@
-import crypto from 'node:crypto';
+export type RuntimeEnv = Record<string, unknown>;
 
-export function getEnv(key: string): string {
-  return process.env[key] || (import.meta.env as Record<string, string>)[key] || '';
+export function getEnv(key: string, runtimeEnv?: RuntimeEnv): string {
+  const runtimeValue = runtimeEnv?.[key];
+  if (typeof runtimeValue === 'string') return runtimeValue;
+
+  if (typeof process !== 'undefined') {
+    const processValue = process.env?.[key];
+    if (processValue) return processValue;
+  }
+
+  const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string> }).env;
+  const viteValue = viteEnv?.[key];
+  return viteValue || '';
 }
 
 export function jsonResponse(
@@ -21,15 +31,21 @@ export function jsonResponse(
 }
 
 function timingSafeEqual(a: string, b: string): boolean {
-  const maxLen = 128;
-  const aPadded = a.padEnd(maxLen, '\0');
-  const bPadded = b.padEnd(maxLen, '\0');
-  try {
-    const result = crypto.timingSafeEqual(Buffer.from(aPadded), Buffer.from(bPadded));
-    return result && a.length === b.length;
-  } catch {
-    return false;
+  // EdgeOne Edge Functions only expose Web APIs, so avoid Node's crypto/Buffer.
+  // Tokens are capped before encoding to keep attacker-controlled work bounded.
+  const maxChars = 512;
+  if (a.length > maxChars || b.length > maxChars) return false;
+  const encoder = new TextEncoder();
+  const aBytes = encoder.encode(a.slice(0, maxChars));
+  const bBytes = encoder.encode(b.slice(0, maxChars));
+  const maxLength = Math.max(aBytes.length, bBytes.length);
+  let mismatch = a.length ^ b.length;
+
+  for (let index = 0; index < maxLength; index += 1) {
+    mismatch |= (aBytes[index] ?? 0) ^ (bBytes[index] ?? 0);
   }
+
+  return mismatch === 0;
 }
 
 export function createAuthChecker(getSecretToken: () => string) {
@@ -64,7 +80,9 @@ export function createAuthChecker(getSecretToken: () => string) {
         const isLocalhost = requestUrl.hostname === 'localhost' || requestUrl.hostname === '127.0.0.1';
         const isSameHost =
           requestUrl.hostname === currentUrl.hostname ||
-          (isLocalhost && process.env.NODE_ENV === 'development');
+          (isLocalhost &&
+            typeof process !== 'undefined' &&
+            process.env?.NODE_ENV === 'development');
         if (isSameHost) return true;
       } catch {
       }

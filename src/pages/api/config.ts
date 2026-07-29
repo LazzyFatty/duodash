@@ -1,9 +1,12 @@
 import type { APIRoute } from 'astro';
-import { getEnv, jsonResponse } from '../../utils/api-utils';
+import { getEnv, jsonResponse, type RuntimeEnv } from '../../utils/api-utils';
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ request }) => {
+export async function handleConfigRequest(
+  request: Request,
+  runtimeEnv?: RuntimeEnv,
+): Promise<Response> {
   const origin = request.headers.get('origin') || request.headers.get('referer');
   if (origin) {
     try {
@@ -17,8 +20,8 @@ export const GET: APIRoute = async ({ request }) => {
     }
   }
 
-  const username = getEnv('DUOLINGO_USERNAME');
-  const jwt = getEnv('DUOLINGO_JWT');
+  const username = getEnv('DUOLINGO_USERNAME', runtimeEnv);
+  const jwt = getEnv('DUOLINGO_JWT', runtimeEnv);
 
   const configured =
     username !== '' &&
@@ -27,4 +30,6 @@ export const GET: APIRoute = async ({ request }) => {
     jwt !== 'your_jwt_token_here';
 
   return jsonResponse({ configured });
-};
+}
+
+export const GET: APIRoute = ({ request }) => handleConfigRequest(request);

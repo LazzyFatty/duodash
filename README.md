@@ -203,9 +203,43 @@ document.cookie.match(/jwt_token=([^;]+)/)[1]
 
 | 检测到的环境变量 | 使用的 adapter |
 | --- | --- |
+| `DEPLOY_TARGET=edgeone`（`npm run build:edgeone` 自动设置） | EdgeOne 静态前端 + Edge Functions |
 | `CF_PAGES`（Cloudflare Pages 自动注入）或 `DEPLOY_TARGET=cloudflare` | Cloudflare |
 | `NETLIFY` | Netlify |
 | 以上都没有（默认） | Vercel |
+
+### 腾讯云 EdgeOne Makers（边缘函数）
+
+项目已包含 EdgeOne Makers 所需的完整配置：
+
+- `edgeone.json`：使用 Node.js 构建 Astro 静态前端，并发布 `dist/client`
+- `edge-functions/api/data.ts`：`GET /api/data`
+- `edge-functions/api/config.ts`：`GET /api/config`
+- `edge-functions/api/ai.ts`：`POST /api/ai`
+
+API 逻辑只使用 Edge Runtime 支持的标准 Web API，不依赖 `node:crypto`、`Buffer` 或 Node.js 运行时。静态资源不会计入单个边缘函数的 5 MB 代码包限制。
+
+#### 方式 A · Git 自动部署（推荐）
+
+1. 将本仓库推送到 GitHub、Gitee 或 Coding。
+2. 在 EdgeOne Makers 控制台导入该仓库。
+3. 在项目环境变量中至少添加 `DUOLINGO_USERNAME` 和 `DUOLINGO_JWT`；如需 Duo AI 点评，再添加对应的 AI Provider、模型和 API Key。
+4. 直接部署。平台会读取 `edgeone.json`，运行 `npm ci` 和 `npm run build:edgeone`。
+5. 部署后访问 `/api/config`；返回 `{"configured":true}` 表示 Duolingo 凭据已被函数读取。
+
+#### 方式 B · EdgeOne CLI
+
+```bash
+npm install -g edgeone
+edgeone login
+edgeone makers link
+edgeone makers dev
+
+# 验证完成后部署
+edgeone makers deploy
+```
+
+CLI 本地服务默认监听 `http://localhost:8088`。也可用 `edgeone makers env set <变量名> <值>` 配置远端环境变量。
 
 ### Vercel
 

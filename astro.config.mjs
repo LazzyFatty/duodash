@@ -24,9 +24,11 @@ const devServerConfig = getDevServerConfig();
 
 // Cloudflare Pages 构建时自动注入 CF_PAGES；Workers 部署用 DEPLOY_TARGET=cloudflare 显式指定
 const isCloudflare = Boolean(process.env.CF_PAGES || process.env.DEPLOY_TARGET === 'cloudflare');
+const isEdgeOne = process.env.DEPLOY_TARGET === 'edgeone';
+const usesWebRuntimeAdapter = isCloudflare || isEdgeOne;
 
 function getAdapter(env = process.env) {
-  if (isCloudflare) {
+  if (usesWebRuntimeAdapter) {
     // DuoDash 为纯客户端渲染的 React SPA，不使用 Astro 图像优化，
     // 用 passthrough 关闭图像服务：免去 IMAGES 绑定依赖，也跳过构建期 workerd 处理。
     return cloudflare({ imageService: 'passthrough' });
@@ -44,11 +46,12 @@ function getAdapter(env = process.env) {
 }
 
 export default defineConfig({
-  output: 'server',
+  // EdgeOne serves the UI as static assets. Only /api/* executes in Edge Functions.
+  output: isEdgeOne ? 'static' : 'server',
   adapter: getAdapter(),
   // Cloudflare 适配器默认强制用 KV 提供 Sessions；本项目不使用 Sessions，
   // 指定内存驱动关闭该默认，免去部署时创建 SESSION KV 命名空间。
-  ...(isCloudflare ? { session: { driver: sessionDrivers.memory() } } : {}),
+  ...(usesWebRuntimeAdapter ? { session: { driver: sessionDrivers.memory() } } : {}),
   devToolbar: {
     enabled: false
   },

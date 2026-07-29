@@ -1,7 +1,13 @@
 import type { APIRoute } from 'astro';
 import type { CacheEntry, UserData } from '../../types';
 import { transformDuolingoData } from '../../services/duolingoService';
-import { getEnv, jsonResponse, createAuthChecker, sanitizeErrorMessage } from '../../utils/api-utils';
+import {
+  getEnv,
+  jsonResponse,
+  createAuthChecker,
+  sanitizeErrorMessage,
+  type RuntimeEnv,
+} from '../../utils/api-utils';
 import { CACHE_TTL_MS } from '../../constants/config';
 import { isFreshSameDayCache, resolveTimeZone } from '../../utils/dateUtils';
 
@@ -12,8 +18,6 @@ const MAX_CACHE_SIZE = 100;
 const DEFAULT_TIMEOUT = 8000;
 
 const cache = new Map<string, CacheEntry<UserData>>();
-
-const checkToken = createAuthChecker(() => getEnv('API_SECRET_TOKEN'));
 
 async function fetchWithTimeout(url: string, headers: HeadersInit, timeoutMs = DEFAULT_TIMEOUT): Promise<{ data: unknown; status: number }> {
   const controller = new AbortController();
@@ -31,14 +35,18 @@ async function fetchWithTimeout(url: string, headers: HeadersInit, timeoutMs = D
   }
 }
 
-export const GET: APIRoute = async ({ request }) => {
+export async function handleDataRequest(
+  request: Request,
+  runtimeEnv?: RuntimeEnv,
+): Promise<Response> {
+  const checkToken = createAuthChecker(() => getEnv('API_SECRET_TOKEN', runtimeEnv));
   if (!checkToken(request)) {
     return jsonResponse({ error: 'Unauthorized' }, 401);
   }
 
   const requestedTimeZone = resolveTimeZone(request.headers.get('x-user-timezone') || undefined);
-  const username = getEnv('DUOLINGO_USERNAME');
-  const jwt = getEnv('DUOLINGO_JWT');
+  const username = getEnv('DUOLINGO_USERNAME', runtimeEnv);
+  const jwt = getEnv('DUOLINGO_JWT', runtimeEnv);
 
   if (!username || !jwt) {
     return jsonResponse({ error: 'Not configured' }, 400);
@@ -126,4 +134,6 @@ export const GET: APIRoute = async ({ request }) => {
   } catch (error: unknown) {
     return jsonResponse({ error: sanitizeErrorMessage(error) }, 500);
   }
-};
+}
+
+export const GET: APIRoute = ({ request }) => handleDataRequest(request);

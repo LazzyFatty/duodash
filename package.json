@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:edgeone": "node scripts/build-edgeone.mjs",
     "build:cloudflare": "DEPLOY_TARGET=cloudflare astro build",
     "deploy:cloudflare": "DEPLOY_TARGET=cloudflare astro build && wrangler deploy",
     "preview": "astro preview",
