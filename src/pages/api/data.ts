@@ -16,8 +16,58 @@ export const prerender = false;
 const DUOLINGO_BASE_URL = 'https://www.duolingo.com';
 const MAX_CACHE_SIZE = 100;
 const DEFAULT_TIMEOUT = 8000;
+const USER_PROFILE_FIELDS = [
+  'id',
+  'username',
+  'name',
+  'streak',
+  'totalXp',
+  'gemsTotalCount',
+  'tier',
+  'courses',
+  'creationDate',
+  'hasPlus',
+  'dailyGoal',
+  'learningLanguage',
+  'streakData',
+  'streakExtendedToday',
+  'xpGains',
+  'inventory',
+  'trackingProperties',
+  'has_item_premium_subscription',
+  'has_item_immersive_subscription',
+  'weeklyXp',
+  'sessionCount',
+  'streakFreezeCount',
+].join(',');
 
 const cache = new Map<string, CacheEntry<UserData>>();
+
+function normalizeJwt(value: string): string {
+  const trimmed = value.trim();
+  const hasMatchingQuotes =
+    (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
+    (trimmed.startsWith('"') && trimmed.endsWith('"'));
+  return hasMatchingQuotes ? trimmed.slice(1, -1).trim() : trimmed;
+}
+
+function resolveUserIdFromJwt(jwt: string): string | null {
+  try {
+    const payloadPart = jwt.split('.')[1];
+    if (!payloadPart) return null;
+
+    const base64 = payloadPart
+      .replace(/-/g, '+')
+      .replace(/_/g, '/')
+      .padEnd(Math.ceil(payloadPart.length / 4) * 4, '=');
+    const payload = JSON.parse(atob(base64)) as { sub?: string | number };
+    const userId = String(payload.sub ?? '');
+
+    return /^\d+$/.test(userId) ? userId : null;
+  } catch {
+    return null;
+  }
+}
 
 async function fetchWithTimeout(url: string, headers: HeadersInit, timeoutMs = DEFAULT_TIMEOUT): Promise<{ data: unknown; status: number }> {
   const controller = new AbortController();
@@ -46,10 +96,18 @@ export async function handleDataRequest(
 
   const requestedTimeZone = resolveTimeZone(request.headers.get('x-user-timezone') || undefined);
   const username = getEnv('DUOLINGO_USERNAME', runtimeEnv);
-  const jwt = getEnv('DUOLINGO_JWT', runtimeEnv);
+  const jwt = normalizeJwt(getEnv('DUOLINGO_JWT', runtimeEnv));
 
   if (!username || !jwt) {
     return jsonResponse({ error: 'Not configured' }, 400);
+  }
+
+  const userId = resolveUserIdFromJwt(jwt);
+  if (!userId) {
+    return jsonResponse({
+      error: 'JWT Token 格式无效，请重新获取 Duolingo JWT Token',
+      code: 'JWT_INVALID'
+    }, 401);
   }
 
   const cacheKey = `user:${username}:tz:${requestedTimeZone}`;
@@ -69,31 +127,14 @@ export async function handleDataRequest(
       'Authorization': `Bearer ${jwt}`
     };
 
-    // 1) 用旧接口查 userId（仅取 id 字段）
-    const lookupResult = await fetchWithTimeout(
-      `${DUOLINGO_BASE_URL}/2017-06-30/users?username=${encodeURIComponent(username)}`,
-      headers,
-      10000
-    );
+    // JWT 的 sub 就是 Duolingo userId。旧用户名查询接口会返回数 MB 的
+    // 完整用户对象，在 Edge Runtime 中重复下载和解析容易超过资源限制。
+    const profileUrl = new URL(`${DUOLINGO_BASE_URL}/2023-05-23/users/${userId}`);
+    profileUrl.searchParams.set('fields', USER_PROFILE_FIELDS);
 
-    if (lookupResult.status === 401 || lookupResult.status === 403) {
-      return jsonResponse({
-        error: 'JWT Token 已过期或无效，请重新获取 Duolingo JWT Token',
-        code: 'JWT_EXPIRED'
-      }, 401);
-    }
-
-    const lookupRaw = lookupResult.data as { users?: any[] } | any;
-    const lookupUser = lookupRaw?.users?.[0] || lookupRaw;
-    const userId = lookupUser?.id || lookupUser?.user_id;
-
-    if (!userId) {
-      return jsonResponse({ error: 'Failed to resolve user ID' }, 500);
-    }
-
-    // 2) 用新接口获取完整用户数据（含数学/音乐等非语言课程）
+    // 1) 获取仪表盘需要的用户字段（含数学/音乐等非语言课程）
     const mainResult = await fetchWithTimeout(
-      `${DUOLINGO_BASE_URL}/2023-05-23/users/${userId}`,
+      profileUrl.toString(),
       headers,
       10000
     );
@@ -105,13 +146,23 @@ export async function handleDataRequest(
       }, 401);
     }
 
-    let userData = mainResult.data as any;
+    const userData = mainResult.data as any;
 
     if (!userData) {
       return jsonResponse({ error: 'Failed to fetch user data' }, 500);
     }
 
-    // 3) 获取 xp_summaries（获取完整历史数据）
+    if (
+      userData.username &&
+      userData.username.toLowerCase() !== username.trim().toLowerCase()
+    ) {
+      return jsonResponse({
+        error: 'DUOLINGO_USERNAME 与 JWT 所属账号不一致',
+        code: 'USERNAME_MISMATCH'
+      }, 400);
+    }
+
+    // 2) 获取 xp_summaries（获取完整历史数据）
     const xpResult = await fetchWithTimeout(
       `${DUOLINGO_BASE_URL}/2017-06-30/users/${userId}/xp_summaries?startDate=1970-01-01`,
       headers,
