@@ -2,16 +2,25 @@ const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const DEFAULT_TIMEZONE = typeof Intl !== 'undefined'
   ? Intl.DateTimeFormat().resolvedOptions().timeZone
   : 'Asia/Shanghai';
+const MAX_DATE_CACHE_SIZE = 4096;
+const resolvedTimeZoneCache = new Map<string, string>();
+const dateFormatterCache = new Map<string, Intl.DateTimeFormat>();
+const summaryDateCache = new Map<string, string | null>();
 
 export function resolveTimeZone(timeZone?: string): string {
   if (!timeZone) {
     return DEFAULT_TIMEZONE;
   }
 
+  const cached = resolvedTimeZoneCache.get(timeZone);
+  if (cached) return cached;
+
   try {
     Intl.DateTimeFormat('en-US', { timeZone }).format(new Date());
+    resolvedTimeZoneCache.set(timeZone, timeZone);
     return timeZone;
   } catch {
+    resolvedTimeZoneCache.set(timeZone, DEFAULT_TIMEZONE);
     return DEFAULT_TIMEZONE;
   }
 }
@@ -20,12 +29,17 @@ export function resolveTimeZone(timeZone?: string): string {
  * 获取日期格式化器
  */
 function getDateFormatter(timeZone: string = DEFAULT_TIMEZONE): Intl.DateTimeFormat {
-  return new Intl.DateTimeFormat('en-CA', {
+  const cached = dateFormatterCache.get(timeZone);
+  if (cached) return cached;
+
+  const formatter = new Intl.DateTimeFormat('en-CA', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     timeZone
   });
+  dateFormatterCache.set(timeZone, formatter);
+  return formatter;
 }
 
 /**
@@ -86,14 +100,26 @@ export function isFreshSameDayCache(
  */
 export function parseSummaryDateKey(date: number | string, timeZone: string = DEFAULT_TIMEZONE): string | null {
   const resolvedTimeZone = resolveTimeZone(timeZone);
+  const cacheKey = `${resolvedTimeZone}:${date}`;
+  if (summaryDateCache.has(cacheKey)) {
+    return summaryDateCache.get(cacheKey) ?? null;
+  }
+
+  let result: string | null;
   if (typeof date === 'number') {
     const d = new Date(date * 1000);
-    if (isNaN(d.getTime())) return null;
-    return toLocalDateKey(d, resolvedTimeZone);
+    result = isNaN(d.getTime()) ? null : toLocalDateKey(d, resolvedTimeZone);
+  } else {
+    const utcDate = new Date(String(date).replace(/\//g, '-') + 'T00:00:00Z');
+    result = isNaN(utcDate.getTime()) ? null : toLocalDateKey(utcDate, resolvedTimeZone);
   }
-  const utcDate = new Date(String(date).replace(/\//g, '-') + 'T00:00:00Z');
-  if (isNaN(utcDate.getTime())) return null;
-  return toLocalDateKey(utcDate, resolvedTimeZone);
+
+  if (summaryDateCache.size >= MAX_DATE_CACHE_SIZE) {
+    const oldestKey = summaryDateCache.keys().next().value;
+    if (oldestKey) summaryDateCache.delete(oldestKey);
+  }
+  summaryDateCache.set(cacheKey, result);
+  return result;
 }
 
 /**

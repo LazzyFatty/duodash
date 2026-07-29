@@ -1,5 +1,5 @@
 import type { UserData, DuolingoRawUser } from "../types";
-import { parseSummaryDateKey, calcDaysSince, resolveTimeZone } from "../utils/dateUtils";
+import { calcDaysSince, resolveTimeZone } from "../utils/dateUtils";
 import { resolveCourses, resolveLearningLanguage, resolveTierIndex, parseCreationDate, resolveIsPlus, resolveTotalXp } from "./duolingoResolvers";
 import { buildHistoryData, calculateTotalLearningTime } from "./historyBuilder";
 import { resolveTodayStats } from "./todayStatsResolver";
@@ -42,18 +42,11 @@ export function transformDuolingoData(rawData: DuolingoRawUser, timeZone?: strin
   const isPlus = resolveIsPlus(rawData);
   const estimatedLearningTime = calculateTotalLearningTime(rawData);
 
-  const xpByDate = new Map<string, number>();
-  if (rawData._xpSummaries?.length) {
-    for (const summary of rawData._xpSummaries) {
-      const dateKey = parseSummaryDateKey(summary.date, resolvedTimeZone);
-      if (dateKey) {
-        const gainedXp = summary.gainedXp ?? summary.gained_xp ?? 0;
-        xpByDate.set(dateKey, (xpByDate.get(dateKey) || 0) + gainedXp);
-      }
-    }
-  }
-
-  const { xpToday, lessonsToday, streakExtendedToday, streakExtendedTime } = resolveTodayStats(rawData, xpByDate, resolvedTimeZone);
+  const { xpToday, lessonsToday, streakExtendedToday, streakExtendedTime } = resolveTodayStats(
+    rawData,
+    new Map<string, number>(),
+    resolvedTimeZone
+  );
 
   return {
     username: rawData.username || 'Duolingo 用户',
