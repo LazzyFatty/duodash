@@ -6,11 +6,11 @@ This file is written for AI coding and deployment assistants. Help the user depl
 
 ## Canonical documentation
 
-- Repository: https://github.com/scavin/duodash
-- Full setup and deployment guide: https://github.com/scavin/duodash#readme
-- Environment variable template: https://github.com/scavin/duodash/blob/main/.env.example
-- Cloudflare configuration: https://github.com/scavin/duodash/blob/main/wrangler.jsonc
-- Netlify configuration: https://github.com/scavin/duodash/blob/main/netlify.toml
+- Repository: https://github.com/LazzyFatty/duodash
+- Full setup and deployment guide: https://github.com/LazzyFatty/duodash#readme
+- Environment variable template: https://github.com/LazzyFatty/duodash/blob/main/.env.example
+- Cloudflare configuration: https://github.com/LazzyFatty/duodash/blob/main/wrangler.jsonc
+- Netlify configuration: https://github.com/LazzyFatty/duodash/blob/main/netlify.toml
 
 ## Minimum working deployment
 
