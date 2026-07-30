@@ -22,6 +22,7 @@ const USER_PROFILE_FIELDS = [
   'name',
   'streak',
   'totalXp',
+  'gems',
   'gemsTotalCount',
   'tier',
   'courses',
